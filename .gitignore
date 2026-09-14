@@ -1,0 +1,22 @@
+﻿# Environments
+.venv/
+venv/
+env/
+
+# Secrets
+.env
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+.pytest_cache/
+
+# Chroma local persistence (session-only, don't commit)
+chroma_data/
+*.sqlite3
+
+# OS / editor
+.DS_Store
+.vscode/
+.idea/
