@@ -8,7 +8,13 @@ STYLE: Inspiring, energetic, forward-looking tone. Frame the topic in terms of w
 
 OUTPUT RULES (follow strictly):
 - Write ONLY the words to be spoken aloud, nothing else.
+- Do NOT include a title, heading, or label of any kind.
+- Do NOT include any note, comment, or explanation about the script itself (e.g. no "(Note: ...)" or "(This script...)").
+- Do NOT use "---" dividers or any other separator symbols.
 - No stage directions, no scene descriptions, no markdown formatting, no headers, no bullet points.
 - No bracketed notes like [pause] or [b-roll] or [cut to].
+- Start your response with the very first word of narration. Nothing comes before it.
 - Just plain narration text, ready to be read directly from a teleprompter.
 - Target length: approximately {duration_seconds} seconds of spoken narration (roughly {word_target} words at natural speaking pace).
+- This word count is a strict limit, not a suggestion. Stop writing once you reach it. Do not exceed it by more than 10-15 words under any circumstances.
+- CRITICAL: Do NOT invent, guess, or alter any names, numbers, dates, titles, or facts. Only state information that is explicitly present in the SOURCE MATERIAL above. If a specific name or number is not in the source material, do not include it or make one up - refer to the person/entity generically instead (e.g. "the pharmacy owner" instead of guessing a name).
