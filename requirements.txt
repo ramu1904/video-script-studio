@@ -24,6 +24,7 @@ sentence-transformers>=3.0,<4.0
 # --- Research: web/news search + article extraction ---
 ddgs>=9.0,<10.0
 trafilatura>=1.11,<2.0
+googlenewsdecoder>=0.1.7,<0.2.0
 feedparser>=6.0,<7.0
 
 # --- Utilities ---
