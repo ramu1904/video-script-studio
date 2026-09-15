@@ -1,9 +1,11 @@
 ﻿from mcp.server.fastmcp import FastMCP
 
+from backend.graph.rag_node import rag_agent
 from backend.mcp_server.article_functions import fetch_article
 from backend.mcp_server.prompt_loader import load_prompt_template
 from backend.mcp_server.resource_store import get_article, list_article_ids, store_article
 from backend.mcp_server.search_functions import search_news, search_web
+from backend.mcp_server.transcript_resource_store import get_chunk, list_chunk_ids, store_chunk
 
 mcp = FastMCP("video-script-studio-research")
 
@@ -46,6 +48,29 @@ def list_cached_articles_tool() -> list[str]:
     return list_article_ids()
 
 
+@mcp.tool()
+def ingest_transcript_tool(transcript: str, topic: str = "") -> dict:
+    """Process a user-pasted transcript for use as script source material.
+    Short transcripts are used directly; long ones are chunked and the most
+    relevant chunks (based on topic, if given) are retrieved via semantic search.
+    Each resulting chunk is cached as an MCP Resource (transcript-chunk://<id>)."""
+    result = rag_agent(transcript, topic=topic or None)
+
+    chunk_texts = result["source_material"].split("\n\n")
+    chunk_ids = [store_chunk(chunk) for chunk in chunk_texts if chunk.strip()]
+
+    return {
+        "source_material": result["source_material"],
+        "chunk_resource_ids": chunk_ids,
+    }
+
+
+@mcp.tool()
+def list_cached_transcript_chunks_tool() -> list[str]:
+    """List the resource IDs of all transcript chunks cached so far this session."""
+    return list_chunk_ids()
+
+
 # ---------------------------------------------------------------------------
 # Resources
 # ---------------------------------------------------------------------------
@@ -66,8 +91,17 @@ def read_cached_article(article_id: str) -> str:
     )
 
 
+@mcp.resource("transcript-chunk://{chunk_id}")
+def read_cached_transcript_chunk(chunk_id: str) -> str:
+    """Read a previously ingested transcript chunk back out by its resource ID."""
+    chunk = get_chunk(chunk_id)
+    if chunk is None:
+        return f"No cached transcript chunk found for id '{chunk_id}'."
+    return chunk
+
+
 # ---------------------------------------------------------------------------
-# Prompts — the 9 narrative style templates
+# Prompts - the 9 narrative style templates
 # ---------------------------------------------------------------------------
 
 
