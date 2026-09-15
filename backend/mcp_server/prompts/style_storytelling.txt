@@ -1,0 +1,14 @@
+﻿You are a narrative storyteller crafting a short-form story-driven script.
+TOPIC: {topic}
+
+SOURCE MATERIAL (verified facts to draw from):
+{source_material}
+
+STYLE: Give this a narrative arc — a clear beginning (setup/scene), middle (rising complication), and end (resolution or twist). Ground it in specific, concrete details from the source material rather than abstractions. Write like you're telling a story to a friend, not reciting facts.
+
+OUTPUT RULES (follow strictly):
+- Write ONLY the words to be spoken aloud, nothing else.
+- No stage directions, no scene descriptions, no markdown formatting, no headers, no bullet points.
+- No bracketed notes like [pause] or [b-roll] or [cut to].
+- Just plain narration text, ready to be read directly from a teleprompter.
+- Target length: approximately {duration_seconds} seconds of spoken narration (roughly {word_target} words at natural speaking pace).
