@@ -5,6 +5,17 @@ from googlenewsdecoder import gnewsdecoder
 
 _MARKDOWN_IMAGE_PATTERN = re.compile(r"!\[.*?\]\(.*?\)")
 
+_JUNK_LINE_PATTERNS = [
+    re.compile(r"follow us on", re.IGNORECASE),
+    re.compile(r"click here to", re.IGNORECASE),
+    re.compile(r"subscribe to our", re.IGNORECASE),
+    re.compile(r"download the .* app", re.IGNORECASE),
+    re.compile(r"stay updated with the latest", re.IGNORECASE),
+    re.compile(r"read more:", re.IGNORECASE),
+    re.compile(r"also read:", re.IGNORECASE),
+    re.compile(r"share this article", re.IGNORECASE),
+]
+
 
 def _resolve_google_news_url(url: str) -> str:
     """If this is a Google News redirect link, decode it to the real
@@ -22,11 +33,19 @@ def _resolve_google_news_url(url: str) -> str:
     return url
 
 
+def _is_junk_line(line: str) -> bool:
+    return any(pattern.search(line) for pattern in _JUNK_LINE_PATTERNS)
+
+
 def _clean_text(text: str) -> str:
-    """Remove embedded markdown image tags left over from extraction,
-    since image_url is already provided as a separate field."""
-    cleaned = _MARKDOWN_IMAGE_PATTERN.sub("", text)
-    return cleaned.strip()
+    """Remove embedded markdown image tags and common CTA/social-media
+    boilerplate lines left over from extraction."""
+    text = _MARKDOWN_IMAGE_PATTERN.sub("", text)
+
+    lines = text.split("\n")
+    cleaned_lines = [line for line in lines if line.strip() and not _is_junk_line(line)]
+
+    return "\n".join(cleaned_lines).strip()
 
 
 def fetch_article(url: str) -> dict:

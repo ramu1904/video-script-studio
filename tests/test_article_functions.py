@@ -131,3 +131,35 @@ def test_markdown_image_tags_are_stripped_from_text():
 
     assert "![" not in result["text"]
     assert "Real article content here." in result["text"]
+
+
+def test_junk_cta_lines_are_stripped_from_text():
+    fake_extraction = {
+        "url": "https://example.com/article",
+        "title": "Article With Junk",
+        "text": (
+            "Stay updated with the latest - Click here to follow us on Instagram\n"
+            "Real article content line one.\n"
+            "Real article content line two.\n"
+            "Subscribe to our newsletter for more updates."
+        ),
+        "date": None,
+        "image": None,
+    }
+
+    with (
+        patch(
+            "backend.mcp_server.article_functions.trafilatura.fetch_url",
+            return_value="<html>fake</html>",
+        ),
+        patch(
+            "backend.mcp_server.article_functions.trafilatura.bare_extraction",
+            return_value=fake_extraction,
+        ),
+    ):
+        result = fetch_article("https://example.com/article")
+
+    assert "follow us on" not in result["text"]
+    assert "Subscribe to our" not in result["text"]
+    assert "Real article content line one." in result["text"]
+    assert "Real article content line two." in result["text"]
