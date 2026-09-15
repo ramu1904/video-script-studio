@@ -1,4 +1,4 @@
-﻿# --- Backend API ---
+# --- Backend API ---
 fastapi>=0.115,<1.0
 uvicorn[standard]>=0.30,<1.0
 
@@ -22,7 +22,7 @@ chromadb>=0.5,<0.6
 sentence-transformers>=3.0,<4.0
 
 # --- Research: web/news search + article extraction ---
-duckduckgo-search>=6.2,<7.0
+ddgs>=9.0,<10.0
 trafilatura>=1.11,<2.0
 feedparser>=6.0,<7.0
 
