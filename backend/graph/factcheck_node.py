@@ -28,19 +28,74 @@ _VERIFY_CLAIM_SYSTEM_PROMPT = (
 )
 
 
+def _extract_claim_text(item) -> str:
+    """A claim item may be a plain string (the requested format) or a dict
+    like {"claim": "...", "source": "...", ...} (a common small-model
+    deviation). Pull out the actual claim text either way."""
+    if isinstance(item, str):
+        return item.strip()
+
+    if isinstance(item, dict):
+        for key in ("claim", "text", "statement"):
+            value = item.get(key)
+            if isinstance(value, str) and value.strip():
+                return value.strip()
+        for value in item.values():
+            if isinstance(value, str) and value.strip():
+                return value.strip()
+
+    return ""
+
+
+def _find_individual_json_objects(text: str) -> list[dict]:
+    """Last-resort fallback: hunt for standalone {...} objects anywhere in
+    the text, regardless of how they are wrapped, nested in separate arrays,
+    concatenated without commas, or otherwise malformed as a whole document.
+    Small models frequently break the requested single-array format in
+    inconsistent ways, but usually still emit valid individual JSON objects -
+    this recovers claims from those regardless of the outer structure.
+    Assumes claim objects are flat (no nested braces)."""
+    objects = []
+    for match in re.finditer(r"\{[^{}]+\}", text):
+        try:
+            parsed = json.loads(match.group(0))
+            if isinstance(parsed, dict):
+                objects.append(parsed)
+        except json.JSONDecodeError:
+            continue
+    return objects
+
+
 def _parse_json_array(raw_text: str) -> list[str]:
-    """Extract a JSON array of strings from LLM output, tolerating minor
-    formatting mistakes like markdown code fences around the JSON."""
+    """Extract a list of claim strings from LLM output. Tries a clean parse
+    first, then increasingly forgiving fallbacks, since small models produce
+    a wide variety of malformed variations on the requested JSON array format."""
     cleaned = raw_text.strip()
     cleaned = re.sub(r"^`(?:json)?\s*", "", cleaned)
     cleaned = re.sub(r"\s*`$", "", cleaned)
 
-    try:
-        parsed = json.loads(cleaned)
-        if isinstance(parsed, list):
-            return [str(item).strip() for item in parsed if str(item).strip()]
-    except json.JSONDecodeError:
-        pass
+    working = cleaned
+    for _ in range(3):
+        try:
+            parsed = json.loads(working)
+            if isinstance(parsed, list):
+                claims = [_extract_claim_text(item) for item in parsed]
+                claims = [c for c in claims if c]
+                if claims:
+                    return claims
+        except json.JSONDecodeError:
+            pass
+
+        if working.count("[") > working.count("]") and working.startswith("["):
+            working = working[1:].strip()
+            continue
+
+        break
+
+    found_objects = _find_individual_json_objects(cleaned)
+    if found_objects:
+        claims = [_extract_claim_text(obj) for obj in found_objects]
+        return [c for c in claims if c]
 
     return []
 
@@ -126,8 +181,6 @@ def verify_claim(claim: str, max_evidence: int = 3) -> dict:
 
 def fact_check_agent(script_text: str, max_claims: int = 5) -> list[dict]:
     """Full fact-check pipeline: extract the key claims from a script, then
-    verify each one against live search evidence. Always runs regardless of
-    strict_mode - this only verifies existing claims, it never adds new
-    content to the script."""
+    verify each one against live search evidence."""
     claims = extract_claims(script_text, max_claims=max_claims)
     return [verify_claim(claim) for claim in claims]

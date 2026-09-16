@@ -22,6 +22,12 @@ def _clean_script_output(text: str) -> str:
     cleaned = re.sub(r"^\(Note[^)]*\)\s*", "", cleaned, flags=re.MULTILINE | re.IGNORECASE)
     cleaned = re.sub(r"^\(This script[^)]*\)\s*", "", cleaned, flags=re.MULTILINE | re.IGNORECASE)
     cleaned = re.sub(r"^Title:.*$", "", cleaned, flags=re.MULTILINE | re.IGNORECASE)
+    cleaned = re.sub(
+        r"^(Narrator|Host|Anchor|Voiceover|VO)\s*:\s*",
+        "",
+        cleaned,
+        flags=re.MULTILINE | re.IGNORECASE,
+    )
     cleaned = re.sub(r"^-{3,}\s*$", "", cleaned, flags=re.MULTILINE)
     cleaned = re.sub(r"\n{3,}", "\n\n", cleaned)
 

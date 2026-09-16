@@ -39,29 +39,34 @@ def search_news(query: str, max_results: int = 8) -> list[dict]:
 def search_web(query: str, max_results: int = 8) -> list[dict]:
     """General web search via DuckDuckGo. Free, no API key needed.
     Returns up to max_results results, deduplicated by domain.
-    Fetches a larger raw batch internally since some domains repeat."""
+    Fetches a larger raw batch internally since some domains repeat.
+    Returns an empty list (rather than raising) if the search provider
+    fails or is rate-limited, so callers can degrade gracefully."""
     raw_fetch_count = max_results * 4
 
     results = []
     seen_domains = set()
 
-    with DDGS() as ddgs:
-        for r in ddgs.text(query, max_results=raw_fetch_count):
-            href = r.get("href", "")
-            domain = urlparse(href).netloc.replace("www.", "")
+    try:
+        with DDGS() as ddgs:
+            for r in ddgs.text(query, max_results=raw_fetch_count):
+                href = r.get("href", "")
+                domain = urlparse(href).netloc.replace("www.", "")
 
-            if domain in seen_domains:
-                continue
-            seen_domains.add(domain)
+                if domain in seen_domains:
+                    continue
+                seen_domains.add(domain)
 
-            results.append(
-                {
-                    "title": r.get("title"),
-                    "url": href,
-                    "snippet": r.get("body"),
-                }
-            )
-            if len(results) >= max_results:
-                break
+                results.append(
+                    {
+                        "title": r.get("title"),
+                        "url": href,
+                        "snippet": r.get("body"),
+                    }
+                )
+                if len(results) >= max_results:
+                    break
+    except Exception:
+        return []
 
     return results

@@ -46,6 +46,25 @@ class ShotType(str, Enum):
     ARCHIVE_FOOTAGE = "archive_footage"
 
 
+_DURATION_SECONDS_MAP = {
+    Duration.SEC_30: 30,
+    Duration.SEC_60: 60,
+    Duration.SEC_90: 90,
+    Duration.MIN_3: 180,
+    Duration.MIN_8: 480,
+}
+
+
+def duration_to_seconds(duration: Duration, custom_duration_seconds: Optional[int] = None) -> int:
+    """Convert a Duration enum value into an actual number of seconds.
+    For CUSTOM, custom_duration_seconds must be provided (validated elsewhere)."""
+    if duration == Duration.CUSTOM:
+        if custom_duration_seconds is None:
+            raise ValueError("custom_duration_seconds is required when duration is CUSTOM")
+        return custom_duration_seconds
+    return _DURATION_SECONDS_MAP[duration]
+
+
 # ---------------------------------------------------------------------------
 # Shared building-block models
 # ---------------------------------------------------------------------------
