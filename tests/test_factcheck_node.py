@@ -24,6 +24,22 @@ def test_parse_json_array_returns_empty_list_on_malformed_input():
     assert result == []
 
 
+def test_parse_json_array_handles_extra_leading_bracket():
+    result = _parse_json_array('[\n["Claim one.", "Claim two."]')
+    assert result == ["Claim one.", "Claim two."]
+
+
+def test_parse_json_array_handles_objects_instead_of_strings():
+    result = _parse_json_array('[{"claim": "Claim one."}, {"claim": "Claim two."}]')
+    assert result == ["Claim one.", "Claim two."]
+
+
+def test_parse_json_array_handles_concatenated_objects_without_commas():
+    raw = '{"claim": "Claim one."}\n{"claim": "Claim two."}'
+    result = _parse_json_array(raw)
+    assert result == ["Claim one.", "Claim two."]
+
+
 def test_parse_json_object_handles_clean_json():
     result = _parse_json_object('{"status": "supported", "explanation": "x", "source_url": null}')
     assert result == {"status": "supported", "explanation": "x", "source_url": None}
@@ -68,7 +84,7 @@ def test_verify_claim_returns_unverified_when_no_evidence_found():
     assert result["source_url"] is None
 
 
-def test_verify_claim_parses_supported_status_with_source():
+def test_verify_claim_parses_supported_status_with_valid_source():
     fake_evidence = [{"title": "Article", "snippet": "Confirms the claim.", "url": "https://x.com"}]
     fake_llm_response = (
         '{"status": "supported", "explanation": "Confirmed by evidence.", '
@@ -83,6 +99,25 @@ def test_verify_claim_parses_supported_status_with_source():
 
     assert result["status"] == "supported"
     assert result["source_url"] == "https://x.com"
+
+
+def test_verify_claim_discards_fabricated_source_url_not_in_evidence():
+    fake_evidence = [
+        {"title": "Article", "snippet": "Confirms the claim.", "url": "https://real-source.com"}
+    ]
+    fake_llm_response = (
+        '{"status": "supported", "explanation": "Confirmed by evidence.", '
+        '"source_url": "https://fabricated-url-not-in-evidence.com"}'
+    )
+
+    with (
+        patch("backend.graph.factcheck_node.search_web", return_value=fake_evidence),
+        patch("backend.graph.factcheck_node.call_llm", return_value=fake_llm_response),
+    ):
+        result = verify_claim("Some claim.")
+
+    assert result["status"] == "supported"  # status is still trusted
+    assert result["source_url"] is None  # but the fabricated URL is discarded
 
 
 def test_verify_claim_falls_back_to_unverified_on_unparseable_llm_response():

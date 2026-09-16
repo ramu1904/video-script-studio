@@ -24,7 +24,9 @@ _VERIFY_CLAIM_SYSTEM_PROMPT = (
     "- supported: the evidence clearly confirms the claim\n"
     "- uncertain: the evidence is related but doesn't clearly confirm or deny it\n"
     "- unverified: no relevant evidence was found\n"
-    "source_url should be the single most relevant URL from the evidence, or null if none applies."
+    "source_url must be copied EXACTLY, character-for-character, from one of the "
+    "evidence URLs provided below. Never invent, guess, modify, or construct a URL "
+    "that was not given to you. If no evidence URL applies, use null."
 )
 
 
@@ -133,7 +135,10 @@ def extract_claims(script_text: str, max_claims: int = 5) -> list[str]:
 
 def verify_claim(claim: str, max_evidence: int = 3) -> dict:
     """Search the web for evidence about a claim, then ask the LLM to judge
-    whether the claim is supported, uncertain, or unverified."""
+    whether the claim is supported, uncertain, or unverified. The returned
+    source_url is validated against the real evidence URLs - if the model
+    fabricates a URL that wasn't actually in the evidence, it is discarded
+    rather than presented as if it were real."""
     evidence = search_web(claim, max_results=max_evidence)
 
     if not evidence:
@@ -143,6 +148,8 @@ def verify_claim(claim: str, max_evidence: int = 3) -> dict:
             "explanation": "No relevant search results were found for this claim.",
             "source_url": None,
         }
+
+    evidence_urls = {item.get("url") for item in evidence if item.get("url")}
 
     evidence_text = "\n".join(
         f"- {item.get('title')}: {item.get('snippet')} (URL: {item.get('url')})"
@@ -168,7 +175,7 @@ def verify_claim(claim: str, max_evidence: int = 3) -> dict:
         }
 
     source_url = parsed.get("source_url")
-    if source_url in (None, "null", ""):
+    if source_url in (None, "null", "") or source_url not in evidence_urls:
         source_url = None
 
     return {
