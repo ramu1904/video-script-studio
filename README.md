@@ -362,6 +362,31 @@ pyproject.toml                    black + pytest config
 .env.example
 ```
 
+## Screenshots
+
+1. Input-Form
+
+   <img width="1899" height="859" alt="Screenshot 2026-09-17 031224" src="https://github.com/user-attachments/assets/6a7d4131-a431-434a-864e-d4ecc8f75d07" />
+
+2. Script-Output
+
+   <img width="1889" height="852" alt="Screenshot 2026-09-17 031536" src="https://github.com/user-attachments/assets/8472f6cc-0dd6-49dd-b8f2-f7235b6a3eef" />
+
+3. Sources
+
+   <img width="1870" height="837" alt="Screenshot 2026-09-17 031552" src="https://github.com/user-attachments/assets/0fa0c9ae-9100-4e8a-a549-42954170b4a6" />
+
+4. Fact-Check
+
+   <img width="1866" height="853" alt="Screenshot 2026-09-17 031608" src="https://github.com/user-attachments/assets/67297bd6-f969-47d5-a16a-ecdb4b896386" />
+
+5. Editing-Timeline Help
+
+   <img width="1904" height="873" alt="Screenshot 2026-09-17 031624" src="https://github.com/user-attachments/assets/be94a7d5-1045-46c4-8949-5354b6e643d0" />
+
+
+
+
 ## Engineering Challenges & Solutions
 
 This project surfaced a number of real, non-obvious problems worth
